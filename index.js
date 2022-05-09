@@ -23,7 +23,7 @@ app.use(cookieSession({
 // DECLARING CUSTOM MIDDLEWARE
 const ifNotLoggedin = (req, res, next) => {
     if(!req.session.isLoggedIn){
-        return res.render('login-register');
+        return res.render('Login');
     }
     next();
 }
@@ -63,6 +63,14 @@ app.get('/Index.ejs',(req,res) =>{
     res.render('Index')
 })
 
+app.get('/Login.ejs',(req,res) =>{
+    res.render('Login')
+})
+
+app.get('/register.ejs',(req,res) =>{
+    res.render('register')
+})
+
 // REGISTER PAGE
 app.post('/register', ifLoggedin, 
 // post data validation(using express-validator)
@@ -90,7 +98,7 @@ app.post('/register', ifLoggedin,
             // INSERTING USER INTO DATABASE
             dbConnection.execute("INSERT INTO `users`(`name`,`email`,`password`) VALUES(?,?,?)",[user_name,user_email, hash_pass])
             .then(result => {
-                res.send(`your account has been created successfully, Now you can <a href="/">Login</a>`);
+                res.render('Login');
             }).catch(err => {
                 // THROW INSERTING USER ERROR'S
                 if (err) throw err;
@@ -107,7 +115,7 @@ app.post('/register', ifLoggedin,
             return error.msg;
         });
         // REDERING login-register PAGE WITH VALIDATION ERRORS
-        res.render('login-register',{
+        res.render('register',{
             register_error:allErrors,
             old_data:req.body
         });
@@ -144,7 +152,7 @@ app.post('/', ifLoggedin, [
                     res.redirect('/');
                 }
                 else{
-                    res.render('login-register',{
+                    res.render('Login',{
                         login_errors:['Invalid Password!']
                     });
                 }
@@ -163,7 +171,7 @@ app.post('/', ifLoggedin, [
             return error.msg;
         });
         // REDERING login-register PAGE WITH LOGIN VALIDATION ERRORS
-        res.render('login-register',{
+        res.render('Login',{
             login_errors:allErrors
         });
     }
