@@ -47,8 +47,6 @@ app.get('/', ifNotLoggedin, (req,res,next) => {
 
 app.get('/news.ejs',(req,res) =>{
     res.render('news')
-    res.render('community')
-    res.render('Index')
 })
 
 app.get('/download.ejs',(req,res) =>{
