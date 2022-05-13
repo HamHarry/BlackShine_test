@@ -5,4 +5,4 @@ const dbConnection = mysql.createPool({
     password : '', // MYSQL PASSWORD
     database : 'nodejs_login' // MYSQL DB NAME
 }).promise();
-module.exports = dbConnection;
+module.exports = dbConnection;  

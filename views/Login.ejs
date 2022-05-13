@@ -17,7 +17,7 @@
                 <div class="container">
                     <h2>Login</h2>
 
-                    <form action="" method="POST">
+                    <form action="/Login" method="POST">
                       <input name="user_email" id="_email" class="textbox" type="text" placeholder="Email" rnodeequired>
                       <input name="user_pass" id="_pass" class="textbox" type="password" placeholder="Password" required>
                       <% if (locals.login_errors) { 
@@ -27,9 +27,7 @@
                       } %>
                       <button type="submit" class="btn">Login</button>
                     </form>
-
-                    
-                    <a href="/register.ejs">Sign Up</a>
+                    <a href="/register.ejs">register</a>
                 </div>
             </div>
         </div>

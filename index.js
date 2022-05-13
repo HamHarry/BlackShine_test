@@ -27,13 +27,15 @@ const ifNotLoggedin = (req, res, next) => {
     }
     next();
 }
+
 const ifLoggedin = (req,res,next) => {
     if(req.session.isLoggedIn){
-        return res.redirect('/index');
+        return res.redirect('/');
     }
     next();
 }
 // END OF CUSTOM MIDDLEWARE
+
 // ROOT PAGE
 app.get('/', ifNotLoggedin, (req,res,next) => {
     dbConnection.execute("SELECT `name` FROM `users` WHERE `id`=?",[req.session.userID])
@@ -122,7 +124,7 @@ app.post('/register', ifLoggedin,
 
 
 // LOGIN PAGE
-app.post('/', ifLoggedin, [
+app.post('/Login', ifLoggedin, [
     body('user_email').custom((value) => {
         return dbConnection.execute('SELECT email FROM users WHERE email=?', [value])
         .then(([rows]) => {
