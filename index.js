@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cookieSession = require('cookie-session');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt'); //123e99#$46@#$sdfkk235@#%scgdgl$^*FGHsdf2345
 const dbConnection = require('./database');
 const { body, validationResult } = require('express-validator');
 
@@ -64,7 +64,7 @@ app.get('/Login.ejs',NotLoggedin,(req,res) =>{
     res.render('Login')
 })
 
-app.get('/register.ejs',NotLoggedin,(req,res) =>{
+app.get('/register.ejs',(req,res) =>{
     res.render('register')
 })
 
