@@ -8,72 +8,69 @@ const { body, validationResult } = require('express-validator');
 const app = express();
 app.use(express.urlencoded({extended:false}));
 
-// SET OUR VIEWS AND VIEW ENGINE
+
 app.set('views', path.join(__dirname,'views'));
 app.set('view engine','ejs');
 
-// APPLY COOKIE SESSION MIDDLEWARE
+
 app.use(express.static('public'))
+
+//กำหนด Cookie ของ Web
 app.use(cookieSession({
     name: 'session',
     keys: ['key1', 'key2'],
-    maxAge:  3600 * 1000 // 1hr
+    maxAge:  3600 * 1000 
 }));
 
-// DECLARING CUSTOM MIDDLEWARE
-const ifNotLoggedin = (req, res, next) => {
+//ถ้าไม่ได้ Login จะเข้าหน้าหลักไม่ได้และกลับมาที่หน้า Login อีกครั้ง
+const NotLoggedin = (req, res, next) => {
     if(!req.session.isLoggedIn){
         return res.render('Login');
     }
     next();
 }
 
-const ifLoggedin = (req,res,next) => {
+//ถ้าไม่ได้ Login จะเข้าหน้าหลักไม่ได้และกลับมาที่หน้า Login อีกครั้ง
+const Loggedin = (req,res,next) => {
     if(req.session.isLoggedIn){
         return res.redirect('/');
     }
     next();
 }
-// END OF CUSTOM MIDDLEWARE
 
-// ROOT PAGE
-app.get('/', ifNotLoggedin, (req,res,next) => {
-    dbConnection.execute("SELECT `name` FROM `users` WHERE `id`=?",[req.session.userID])
-    .then(([rows]) => {
-        res.render('index',{
-            name:rows[0].name
-        });
-    });
-    
-});// END OF ROOT PAGE
+//get หน้าต่างๆ และนำเอาเงื่อนไข NotLoggedin มาใช้ด้วยหากมีการเข้าหน้าใดๆโดยไม่ Login ก็จะกลับมาหน้า Login
 
-app.get('/news.ejs',(req,res) =>{
+app.get('/', NotLoggedin, (req,res,next) => {
+    res.render('index')
+})
+
+app.get('/news.ejs',NotLoggedin,(req,res) =>{
     res.render('news')
 })
 
-app.get('/download.ejs',(req,res) =>{
+app.get('/download.ejs',NotLoggedin,(req,res) =>{
     res.render('download')
 })
 
-app.get('/community.ejs',(req,res) =>{
+app.get('/community.ejs',NotLoggedin,(req,res) =>{
     res.render('community')
 })
 
-app.get('/Index.ejs',(req,res) =>{
+app.get('/Index.ejs',NotLoggedin,(req,res) =>{
     res.render('Index')
 })
 
-app.get('/Login.ejs',(req,res) =>{
+app.get('/Login.ejs',NotLoggedin,(req,res) =>{
     res.render('Login')
 })
 
-app.get('/register.ejs',(req,res) =>{
+app.get('/register.ejs',NotLoggedin,(req,res) =>{
     res.render('register')
 })
 
-// REGISTER PAGE
-app.post('/register', ifLoggedin, 
-// post data validation(using express-validator)
+//--------------------Register---------------------//
+
+app.post('/register', Loggedin,
 [
     body('user_email','Invalid email address!').isEmail().custom((value) => {
         return dbConnection.execute('SELECT `email` FROM `users` WHERE `email`=?', [value])
@@ -86,45 +83,43 @@ app.post('/register', ifLoggedin,
     }),
     body('user_name','Username is Empty!').trim().not().isEmpty(),
     body('user_pass','The password must be of minimum length 6 characters').trim().isLength({ min: 6 }),
-],// end of post data validation
+],
 (req,res,next) => {
 
     const validation_result = validationResult(req);
     const {user_name, user_pass, user_email} = req.body;
-    // IF validation_result HAS NO ERROR
     if(validation_result.isEmpty()){
-        // password encryption (using bcryptjs)
         bcrypt.hash(user_pass, 12).then((hash_pass) => {
-            // INSERTING USER INTO DATABASE
             dbConnection.execute("INSERT INTO `users`(`name`,`email`,`password`) VALUES(?,?,?)",[user_name,user_email, hash_pass])
             .then(result => {
                 res.render('Login');
             }).catch(err => {
-                // THROW INSERTING USER ERROR'S
+ 
                 if (err) throw err;
             });
         })
         .catch(err => {
-            // THROW HASING ERROR'S
+            
             if (err) throw err;
         })
     }
     else{
-        // COLLECT ALL THE VALIDATION ERRORS
+        
         let allErrors = validation_result.errors.map((error) => {
             return error.msg;
         });
-        // REDERING login-register PAGE WITH VALIDATION ERRORS
+        
         res.render('register',{
             register_error:allErrors,
             old_data:req.body
         });
     }
-});// END OF REGISTER PAGE
+});
 
 
-// LOGIN PAGE
-app.post('/Login', ifLoggedin, [
+//--------------------Login---------------------//
+
+app.post('/Login', Loggedin, [
     body('user_email').custom((value) => {
         return dbConnection.execute('SELECT email FROM users WHERE email=?', [value])
         .then(([rows]) => {
@@ -170,26 +165,24 @@ app.post('/Login', ifLoggedin, [
         let allErrors = validation_result.errors.map((error) => {
             return error.msg;
         });
-        // REDERING login-register PAGE WITH LOGIN VALIDATION ERRORS
+        
         res.render('Login',{
             login_errors:allErrors
         });
     }
 });
-// END OF LOGIN PAGE
 
-// LOGOUT
+//------------------Logout--------------------//
 app.get('/logout',(req,res)=>{
-    //session destroy
+    
     req.session = null;
     res.redirect('/');
 });
-// END OF LOGOUT
 
+//------------------Error404-------------------//
 app.use('/', (req,res) => {
     res.status(404).send('<h1>404 Page Not Found!</h1>');
 });
 
-
-
-app.listen(3000, () => console.log("Server is Running..."));
+//-------------------Port----------------------//
+app.listen(3000, () => console.log("Server", 3000 ,"is Running..."));
